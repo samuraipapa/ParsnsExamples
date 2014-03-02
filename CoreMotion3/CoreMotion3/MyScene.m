@@ -13,8 +13,11 @@
 @property SKLabelNode *myLabel;
 @property SKLabelNode *myLabel2;
 @property SKLabelNode *myLabel3;
+@property SKLabelNode *labelDebug;
 @property int counterUp;
 @property int counterDown;
+@property BOOL done;
+@property int spinLevel;
 
 
 
@@ -29,12 +32,13 @@
         
         _counterUp = 0;
         _counterDown = 0;
-        
+        _done= NO;
+        _spinLevel = 0;
         
         _motionManager= [[CMMotionManager alloc]init];
-        _motionManager.accelerometerUpdateInterval = 0.05;
+        _motionManager.accelerometerUpdateInterval = 0.5;
         [_motionManager startAccelerometerUpdates];
-        _motionManager.gyroUpdateInterval = 0.05;
+        _motionManager.gyroUpdateInterval = 0.5;
         [_motionManager startGyroUpdates];
         
         
@@ -48,22 +52,27 @@
                                         CGRectGetMidY(self.frame));
         
         _myLabel2 = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
-        _myLabel2.text = @"Hello, World!";
+        _myLabel2.text = @"counterUp:";
         _myLabel2.fontSize = 18;
-        _myLabel2.position = CGPointMake(CGRectGetMidX(self.frame)-20,
-                                         CGRectGetMidY(self.frame)+30);
+        _myLabel2.position = CGPointMake(CGRectGetMidX(self.frame),
+                                         CGRectGetMidY(self.frame)+60);
         
         _myLabel3 = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
-        _myLabel3.text = @"Hello, World!";
+        _myLabel3.text = @"counterDown:";
         _myLabel3.fontSize = 18;
-        _myLabel3.position = CGPointMake(CGRectGetMidX(self.frame)+20,
+        _myLabel3.position = CGPointMake(CGRectGetMidX(self.frame),
                                          CGRectGetMidY(self.frame)+30);
-        
+   
+        _labelDebug = [SKLabelNode labelNodeWithFontNamed:@"Chalkduster"];
+        _labelDebug.text = @"in if: 0:";
+        _labelDebug.fontSize = 18;
+        _labelDebug.position = CGPointMake(CGRectGetMidX(self.frame),
+                                         CGRectGetMaxY(self.frame)-30);
         
         [self addChild:_myLabel];
         [self addChild:_myLabel2];
         [self addChild:_myLabel3];
-        
+        [self addChild:_labelDebug];
     }
     return self;
 }
@@ -82,20 +91,32 @@
 {
     
     
-    if (_motionManager.gyroData.rotationRate.y > 1) {
+    if (_motionManager.gyroData.rotationRate.x > 1) {
         _counterUp ++;
+         _labelDebug.text = @"in if: 1:";
+        
+    
     }
     
-    if (_motionManager.gyroData.rotationRate.y < 1  && _counterUp == 1 ) {
+    if (_motionManager.gyroData.rotationRate.x < 1  && _counterUp > 1 ) {
         _counterDown ++;
+         _labelDebug.text = @"in if: 2:";
+        _spinLevel = 1;
+        
     }
     
-    if (_motionManager.gyroData.rotationRate.y > 1  && _counterUp == 1  && _counterDown == 1 ) {
+    if (_motionManager.gyroData.rotationRate.x > 1  && _spinLevel == 1 ) {
         _counterUp  ++;
+         _labelDebug.text = @"in if: 3:";
     }
     
-    if (_motionManager.gyroData.rotationRate.y > 1  && _counterUp == 2  && _counterDown == 1 ) {
+    if (_motionManager.gyroData.rotationRate.x > 1  && _spinLevel == 1  ) {
         _counterDown  ++;
+         _labelDebug.text = @"in if: 4:";
+        
+        _done = YES;
+        _spinLevel= 0;
+        [_myLabel2 setText:@"Done!"];
     }
     
     
@@ -132,8 +153,10 @@
                        _motionManager.gyroData.rotationRate.y,
                        _motionManager.gyroData.rotationRate.z]];
     
-    [_myLabel2 setText:[NSString stringWithFormat:@"counter: %i",_counterUp]];
-    
+    if (!_done) {
+    [_myLabel2 setText:[NSString stringWithFormat:@"counterUp: %i",_counterUp]];
+    [_myLabel3 setText:[NSString stringWithFormat:@"counterDown: %i",_counterDown]];
+    }
     
     /* Called before each frame is rendered */
 }
